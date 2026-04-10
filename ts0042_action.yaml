@@ -1,9 +1,13 @@
 blueprint:
-  name: Zigbee2MQTT TS0042 - MQTT Action
+  name: Zigbee2MQTT TS0042 - Multi Action MQTT
   description: >
-    Run an action sequence when a Zigbee2MQTT TS0042 publishes the selected action.
+    Assign a different action sequence to each TS0042 MQTT action
+    published by Zigbee2MQTT.
   domain: automation
   source_url: https://github.com/javierconfoie/ha-z2m-ts0042-blueprint/blob/main/ts0042_action.yaml
+  author: Javier
+  homeassistant:
+    min_version: "2024.10.0"
   input:
     mqtt_topic:
       name: MQTT topic
@@ -11,38 +15,84 @@ blueprint:
       selector:
         text:
 
-    ts0042_action:
-      name: Button action
-      description: MQTT action to listen for
+    action_1_single:
+      name: Button 1 single press
+      description: Action sequence for 1_single
+      default: []
       selector:
-        select:
-          options:
-            - 1_single
-            - 2_single
-            - 1_double
-            - 2_double
-            - 1_hold
-            - 2_hold
+        action: {}
 
-    action_sequence:
-      name: Action sequence
-      description: Actions to run when the selected MQTT action is received
+    action_2_single:
+      name: Button 2 single press
+      description: Action sequence for 2_single
+      default: []
+      selector:
+        action: {}
+
+    action_1_double:
+      name: Button 1 double press
+      description: Action sequence for 1_double
+      default: []
+      selector:
+        action: {}
+
+    action_2_double:
+      name: Button 2 double press
+      description: Action sequence for 2_double
+      default: []
+      selector:
+        action: {}
+
+    action_1_hold:
+      name: Button 1 hold
+      description: Action sequence for 1_hold
+      default: []
+      selector:
+        action: {}
+
+    action_2_hold:
+      name: Button 2 hold
+      description: Action sequence for 2_hold
+      default: []
       selector:
         action: {}
 
 mode: single
 
-variables:
-  expected_action: !input ts0042_action
-
 triggers:
   - trigger: mqtt
     topic: !input mqtt_topic
 
-conditions:
-  - condition: template
-    value_template: >-
-      {{ trigger.payload_json is defined and
-         trigger.payload_json.action | default('') == expected_action }}
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '1_single' }}"
+        sequence: !input action_1_single
 
-actions: !input action_sequence
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '2_single' }}"
+        sequence: !input action_2_single
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '1_double' }}"
+        sequence: !input action_1_double
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '2_double' }}"
+        sequence: !input action_2_double
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '1_hold' }}"
+        sequence: !input action_1_hold
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload_json.action | default('') == '2_hold' }}"
+        sequence: !input action_2_hold
+
+    default: []
