@@ -1,30 +1,32 @@
 blueprint:
-  name: "Zigbee2MQTT TS0042 - Acción MQTT"
-  description: "Ejecuta una secuencia cuando el TS0042 publique la acción seleccionada por MQTT."
+  name: Zigbee2MQTT TS0042 - MQTT Action
+  description: >
+    Run an action sequence when a Zigbee2MQTT TS0042 publishes the selected action.
   domain: automation
+  source_url: https://github.com/javierconfoie/ha-z2m-ts0042-blueprint/blob/main/ts0042_action.yaml
   input:
     mqtt_topic:
-      name: "Topic MQTT del dispositivo"
-      description: "Ejemplo: zigbee2mqtt/ts0042"
+      name: MQTT topic
+      description: "Example: zigbee2mqtt/ts0042"
       selector:
         text:
 
     ts0042_action:
-      name: "Acción del botón"
-      description: "Acción MQTT a escuchar"
+      name: Button action
+      description: MQTT action to listen for
       selector:
         select:
           options:
-            - "1_single"
-            - "2_single"
-            - "1_double"
-            - "2_double"
-            - "1_hold"
-            - "2_hold"
+            - 1_single
+            - 2_single
+            - 1_double
+            - 2_double
+            - 1_hold
+            - 2_hold
 
     action_sequence:
-      name: "Acciones a ejecutar"
-      description: "Secuencia que se ejecutará cuando coincida la acción seleccionada"
+      name: Action sequence
+      description: Actions to run when the selected MQTT action is received
       selector:
         action: {}
 
@@ -33,14 +35,14 @@ mode: single
 variables:
   expected_action: !input ts0042_action
 
-trigger:
-  - platform: mqtt
+triggers:
+  - trigger: mqtt
     topic: !input mqtt_topic
 
-condition:
+conditions:
   - condition: template
-    value_template: >
+    value_template: >-
       {{ trigger.payload_json is defined and
-         (trigger.payload_json.action | default('')) == expected_action }}
+         trigger.payload_json.action | default('') == expected_action }}
 
-action: !input action_sequence
+actions: !input action_sequence
