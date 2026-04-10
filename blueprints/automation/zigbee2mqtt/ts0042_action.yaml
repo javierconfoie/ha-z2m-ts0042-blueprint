@@ -1,0 +1,95 @@
+blueprint:
+  name: Tuya TS0042 2-button remote (Zigbee2MQTT)
+  description: >
+    Handle single press, double press, and hold actions for both buttons of
+    the Tuya TS0042 2-gang wireless switch via Zigbee2MQTT MQTT messages.
+  domain: automation
+  source_url: https://github.com/javierconfoie/ha-z2m-ts0042-blueprint/blob/main/blueprints/automation/zigbee2mqtt/ts0042_action.yaml
+  input:
+    z2m_base_topic:
+      name: Zigbee2MQTT Base Topic
+      description: >
+        The base MQTT topic configured in Zigbee2MQTT (default: `zigbee2mqtt`).
+      default: zigbee2mqtt
+      selector:
+        text:
+    remote_name:
+      name: Remote Friendly Name
+      description: >
+        The friendly name of the TS0042 device as configured in Zigbee2MQTT.
+      selector:
+        text:
+    button_1_single:
+      name: Button 1 — Single Press
+      description: Action to run when button 1 is pressed once.
+      default: []
+      selector:
+        action:
+    button_1_double:
+      name: Button 1 — Double Press
+      description: Action to run when button 1 is pressed twice.
+      default: []
+      selector:
+        action:
+    button_1_hold:
+      name: Button 1 — Hold
+      description: Action to run when button 1 is held.
+      default: []
+      selector:
+        action:
+    button_2_single:
+      name: Button 2 — Single Press
+      description: Action to run when button 2 is pressed once.
+      default: []
+      selector:
+        action:
+    button_2_double:
+      name: Button 2 — Double Press
+      description: Action to run when button 2 is pressed twice.
+      default: []
+      selector:
+        action:
+    button_2_hold:
+      name: Button 2 — Hold
+      description: Action to run when button 2 is held.
+      default: []
+      selector:
+        action:
+
+trigger:
+  - platform: mqtt
+    topic: "{{ z2m_base_topic }}/{{ remote_name }}/action"
+
+variables:
+  z2m_base_topic: !input z2m_base_topic
+  remote_name: !input remote_name
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_single' }}"
+        sequence: !input button_1_single
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_double' }}"
+        sequence: !input button_1_double
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_hold' }}"
+        sequence: !input button_1_hold
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_single' }}"
+        sequence: !input button_2_single
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_double' }}"
+        sequence: !input button_2_double
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_hold' }}"
+        sequence: !input button_2_hold
+
+mode: single
+max_exceeded: silent
